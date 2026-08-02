@@ -1,0 +1,22 @@
+enabled: true
+
+language:
+  # auto, zh_CN, or en_US
+  mode: auto
+
+weather:
+  enabled: true
+  cache_minutes: 30
+  timeout_seconds: 3
+
+battery:
+  enabled: true
+
+location:
+  mode: manual
+  city: Wuhan
+  country: China
+
+# Conservative character cap that keeps the injected block below about 500 tokens.
+max_injected_chars: 1600
+

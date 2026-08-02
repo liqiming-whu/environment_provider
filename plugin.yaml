@@ -1,0 +1,6 @@
+name: environment_provider
+version: 1.0.0
+description: Inject localized time, weekday, manual location, weather, and battery context before each LLM turn.
+provides_hooks:
+  - pre_llm_call
+

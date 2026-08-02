@@ -1,0 +1,18 @@
+{
+  "environment": "Current Environment",
+  "datetime": "Current Time",
+  "timezone": "Timezone",
+  "weekday": "Weekday",
+  "location": "Location",
+  "weather": "Weather",
+  "temperature": "Temperature",
+  "humidity": "Humidity",
+  "wind": "Wind Speed",
+  "battery": "Battery",
+  "charging": "Charging Status",
+  "charging_yes": "Charging",
+  "charging_no": "Not charging",
+  "unavailable": "Unavailable",
+  "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+}
+

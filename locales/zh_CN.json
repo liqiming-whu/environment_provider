@@ -1,0 +1,18 @@
+{
+  "environment": "当前环境",
+  "datetime": "当前时间",
+  "timezone": "时区",
+  "weekday": "星期",
+  "location": "地点",
+  "weather": "天气",
+  "temperature": "温度",
+  "humidity": "湿度",
+  "wind": "风速",
+  "battery": "电量",
+  "charging": "充电状态",
+  "charging_yes": "正在充电",
+  "charging_no": "未充电",
+  "unavailable": "不可用",
+  "weekdays": ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+}
+
