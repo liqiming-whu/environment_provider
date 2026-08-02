@@ -46,15 +46,25 @@ cp -R ./plugins/environment_provider ~/.hermes/plugins/environment_provider
 
 ```yaml
 language:
-  mode: auto       # 也可固定为 zh_CN 或 en_US
+  mode: zh_CN      # 默认中文；也可设为 auto 或 en_US
 
 location:
   mode: manual
-  city: Wuhan
-  country: China
+  query:            # 发送给天气服务的稳定查询名称
+    city: Wuhan
+    country: China
+  display:          # 仅用于注入文本的本地化名称
+    zh_CN:
+      city: 武汉
+      country: 中国
+    en_US:
+      city: Wuhan
+      country: China
 ```
 
-V1 不使用 GPS 或 IP 定位。天气请求使用 `wttr.in`，不需要 API Key；缓存有效期默认为 30 分钟。天气、网络或电池读取失败不会中断 Hermes。
+V1 不使用 GPS 或 IP 定位。`query` 与 `display` 分离，因此不需要内置全球城市中英文对照表；没有对应语言的 `display` 时会回退到查询名称。旧版 `city`／`country` 顶层写法仍可读取，但不会自动翻译。
+
+天气请求使用 `wttr.in`，不需要 API Key。中文模式优先读取服务返回的中文天气描述，缺失时按完整的 48 个 WorldWeatherOnline 天气代码使用内置中文兜底，再回退到英文。缓存有效期默认为 30 分钟，缓存格式升级时会自动绕过旧缓存。天气、网络或电池读取失败不会中断 Hermes。
 
 ## 4. 启用并重启
 
@@ -101,4 +111,3 @@ hermes plugins disable environment_provider
 ```
 
 再删除目标 profile 下的 `plugins/environment_provider` 目录并重启 Hermes。插件没有修改核心代码、人格、Memory 或工作区，因此无需其他回滚步骤。
-

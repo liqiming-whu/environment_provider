@@ -2,7 +2,7 @@ enabled: true
 
 language:
   # auto, zh_CN, or en_US
-  mode: auto
+  mode: zh_CN
 
 weather:
   enabled: true
@@ -14,9 +14,16 @@ battery:
 
 location:
   mode: manual
-  city: Wuhan
-  country: China
+  query:
+    city: Wuhan
+    country: China
+  display:
+    zh_CN:
+      city: 武汉
+      country: 中国
+    en_US:
+      city: Wuhan
+      country: China
 
 # Conservative character cap that keeps the injected block below about 500 tokens.
 max_injected_chars: 1600
-

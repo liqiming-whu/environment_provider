@@ -17,4 +17,3 @@ def get_battery() -> dict[str, object]:
         }
     except Exception:
         return {"available": False, "battery_percent": None, "charging": None}
-

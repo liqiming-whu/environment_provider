@@ -36,4 +36,3 @@ def resolve_language(mode: str | None, hermes_language: str | None = None) -> st
     except Exception:
         detected = None
     return detected or "en_US"
-

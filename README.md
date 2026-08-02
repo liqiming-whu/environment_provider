@@ -10,7 +10,8 @@
 - 手动配置城市与国家，不使用 GPS 或 IP 自动定位。
 - 通过 `wttr.in` 获取天气、温度、湿度和风速，无需 API Key。
 - 获取设备电量及充电状态。
-- 中文和英文输出，可自动选择或在配置中固定。
+- 默认输出简体中文，也可切换英文或自动选择。
+- 天气描述与地点显示名按语言本地化，查询名称和显示名称彼此独立。
 - 天气结果本地缓存，默认 30 分钟。
 - 控制注入文本长度，默认最多 1600 个字符。
 - Windows 与 macOS 支持。
@@ -23,7 +24,7 @@
 时区：Asia/Shanghai
 星期：星期日
 地点：武汉 / 中国
-天气：Clear
+天气：晴
 温度：34°C
 湿度：45%
 风速：12 km/h
@@ -76,7 +77,7 @@ hermes plugins enable environment_provider
 enabled: true
 
 language:
-  mode: auto       # auto、zh_CN 或 en_US
+  mode: zh_CN      # 默认中文；也可设为 auto 或 en_US
 
 weather:
   enabled: true
@@ -88,13 +89,23 @@ battery:
 
 location:
   mode: manual
-  city: Wuhan
-  country: China
+  query:
+    city: Wuhan
+    country: China
+  display:
+    zh_CN:
+      city: 武汉
+      country: 中国
+    en_US:
+      city: Wuhan
+      country: China
 
 max_injected_chars: 1600
 ```
 
-当前版本只支持手动地点。`city` 和 `country` 会发送给 `wttr.in` 以查询天气，请勿填写不希望发送给该服务的精确地址或其他隐私信息。
+当前版本只支持手动地点。`query` 中的城市和国家会发送给 `wttr.in` 查询天气；`display` 只控制注入文本中的本地化名称。这样无需维护庞大的城市对照表，也能按用户偏好决定写“武汉”还是“武汉市”。请勿在 `query` 中填写不希望发送给该服务的精确地址或其他隐私信息。
+
+中文天气优先使用 `wttr.in` 返回的本地化描述；服务没有提供时，使用完整覆盖 48 个 WorldWeatherOnline 天气代码的中文兜底。地点显示名不会依赖天气服务自动翻译。旧版顶层 `city`／`country` 配置仍兼容，但会原样显示。
 
 ## 测试
 
@@ -113,7 +124,7 @@ macOS/Linux：
 PYTHONPATH="$(pwd)" python3 -m unittest discover -s ./environment_provider/tests -v
 ```
 
-测试覆盖星期字段、中英文格式、天气缓存与失败回退、电池读取、缺失配置以及 Hermes hook 注册。
+测试覆盖星期字段、中英文地点显示、旧配置兼容、中文天气描述与代码兜底、天气缓存与失败回退、电池读取、缺失配置以及 Hermes hook 注册。
 
 ## 设计边界
 

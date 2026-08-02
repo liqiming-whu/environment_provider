@@ -65,4 +65,3 @@ def format_environment(
         ]
     text = "\n".join(lines)
     return text if len(text) <= max_chars else text[: max(0, max_chars - 1)].rstrip() + "…"
-

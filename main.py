@@ -45,7 +45,7 @@ def build_environment(
 ) -> dict[str, Any]:
     """Collect every provider independently so one failure cannot block a turn."""
     config = config or _load_config()
-    location = get_location(config.get("location", {}))
+    location = get_location(config.get("location", {}), language)
     weather_config = config.get("weather", {})
     weather = (
         get_weather(

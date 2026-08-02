@@ -17,4 +17,3 @@ def get_time(now: datetime | None = None) -> dict[str, object]:
         "weekday": current.strftime("%A"),
         "weekday_number": current.isoweekday(),
     }
-
