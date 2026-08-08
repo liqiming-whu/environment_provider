@@ -10,7 +10,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from environment_provider.formatter import format_environment
-from environment_provider.main import _load_config, inject_environment, register
+from environment_provider.main import (
+    _load_config,
+    inject_environment_request,
+    register,
+)
 from environment_provider.providers.battery_provider import get_battery
 from environment_provider.providers.location_provider import get_location
 from environment_provider.providers.time_provider import get_time
@@ -18,7 +22,7 @@ from environment_provider.providers.weather_provider import WEATHER_ZH_FALLBACK,
 
 
 EXPECTED_WEATHER_CODES = {
-    "113", "116", "119", "122", "143", "176", "179", "182", "185", "200",
+    "113", "116", "119", "122", "143", "149", "176", "179", "182", "185", "200",
     "227", "230", "248", "260", "263", "266", "281", "284", "293", "296",
     "299", "302", "305", "308", "311", "314", "317", "320", "323", "326",
     "329", "332", "335", "338", "350", "353", "356", "359", "362", "365",
@@ -132,6 +136,7 @@ class EnvironmentProviderTests(unittest.TestCase):
         self.assertEqual(WEATHER_ZH_FALLBACK["308"], "大雨")
         self.assertEqual(WEATHER_ZH_FALLBACK["359"], "暴雨")
         self.assertEqual(WEATHER_ZH_FALLBACK["395"], "中到大雪伴雷电")
+        self.assertEqual(WEATHER_ZH_FALLBACK["149"], "烟霾")
 
     def test_battery_available(self):
         fake_psutil = SimpleNamespace(
@@ -154,22 +159,43 @@ class EnvironmentProviderTests(unittest.TestCase):
         ):
             self.assertEqual(_load_config(), {})
 
-    def test_hook_returns_context(self):
+    def test_request_middleware_injects_only_latest_user_message(self):
+        request = {
+            "messages": [
+                {"role": "user", "content": "旧问题\n\n【当前环境】\n当前时间：旧"},
+                {"role": "assistant", "content": "旧回答"},
+                {"role": "user", "content": "现在呢"},
+            ]
+        }
         with patch("environment_provider.main.build_environment", return_value=self.sample):
-            result = inject_environment(language="zh_CN")
+            result = inject_environment_request(request=request, language="zh_CN")
         self.assertIsInstance(result, dict)
-        self.assertIn("context", result)
-        self.assertIn("星期", result["context"])
+        self.assertEqual(request["messages"][0]["content"].splitlines()[-1], "当前时间：旧")
+        messages = result["request"]["messages"]
+        self.assertEqual(messages[0]["content"], "旧问题")
+        self.assertIn('<environment_context transient="true">', messages[2]["content"])
+        self.assertIn("星期", messages[2]["content"])
+        self.assertEqual(messages[2]["content"].count("当前环境"), 1)
 
-    def test_registers_pre_llm_hook(self):
+    def test_request_middleware_supports_responses_content_blocks(self):
+        request = {"input": [{"role": "user", "content": [
+            {"type": "input_text", "text": "看看天气"}
+        ]}]}
+        with patch("environment_provider.main.build_environment", return_value=self.sample):
+            result = inject_environment_request(request=request, language="zh_CN")
+        content = result["request"]["input"][0]["content"]
+        self.assertEqual(content[-1]["type"], "input_text")
+        self.assertIn("当前环境", content[-1]["text"])
+
+    def test_registers_llm_request_middleware(self):
         calls = []
 
         class Context:
-            def register_hook(self, name, callback):
+            def register_middleware(self, name, callback):
                 calls.append((name, callback))
 
         register(Context())
-        self.assertEqual(calls, [("pre_llm_call", inject_environment)])
+        self.assertEqual(calls, [("llm_request", inject_environment_request)])
 
 
 if __name__ == "__main__":

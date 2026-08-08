@@ -1,8 +1,8 @@
 # environment_provider
 
-`environment_provider` 是一个面向 Hermes Agent 的开源环境信息注入插件。它在每次调用大语言模型前，通过 `pre_llm_call` hook 注入简短、可本地化的现实环境信息，让 Agent 能感知当前时间、星期、手动配置的地点、天气、电量和充电状态。
+`environment_provider` 是一个面向 Hermes Agent 的开源环境信息注入插件。它通过 `llm_request` 中间件，在模型请求即将发送时附加简短、可本地化的现实环境信息，让 Agent 能感知当前时间、星期、手动配置的地点、天气、电量和充电状态。
 
-插件不会修改 Agent 的 Prompt、Skill、Memory、工作区或会话历史。天气、电池或配置读取失败时采用 fail-open 策略，不会阻断 Hermes 对话。
+环境块只存在于当前发往模型的请求副本中，不写入可见消息或 Hermes 的 `api_content` 历史侧车。插件还会在请求副本中移除旧版插件遗留的历史环境块，避免模型同时看到多份过期时间、天气和电量。它不会修改 Agent 的 Prompt、Skill、Memory、工作区或会话数据库。天气、电池或配置读取失败时采用 fail-open 策略，不会阻断 Hermes 对话。
 
 ## 功能
 
@@ -105,7 +105,7 @@ max_injected_chars: 1600
 
 当前版本只支持手动地点。`query` 中的城市和国家会发送给 `wttr.in` 查询天气；`display` 只控制注入文本中的本地化名称。这样无需维护庞大的城市对照表，也能按用户偏好决定写“武汉”还是“武汉市”。请勿在 `query` 中填写不希望发送给该服务的精确地址或其他隐私信息。
 
-中文天气优先使用 `wttr.in` 返回的本地化描述；服务没有提供时，使用完整覆盖 48 个 WorldWeatherOnline 天气代码的中文兜底。地点显示名不会依赖天气服务自动翻译。旧版顶层 `city`／`country` 配置仍兼容，但会原样显示。
+中文天气优先使用 `wttr.in` 返回的本地化描述；服务没有提供时，使用覆盖 49 个天气代码的中文兜底，其中扩展天气码 `149` 映射为“烟霾”。地点显示名不会依赖天气服务自动翻译。旧版顶层 `city`／`country` 配置仍兼容，但会原样显示。
 
 ## 测试
 
@@ -124,7 +124,7 @@ macOS/Linux：
 PYTHONPATH="$(pwd)" python3 -m unittest discover -s ./environment_provider/tests -v
 ```
 
-测试覆盖星期字段、中英文地点显示、旧配置兼容、中文天气描述与代码兜底、天气缓存与失败回退、电池读取、缺失配置以及 Hermes hook 注册。
+测试覆盖星期字段、中英文地点显示、旧配置兼容、中文天气描述与代码兜底、天气缓存与失败回退、电池读取、缺失配置、请求级临时注入、旧环境块清理以及 Hermes 中间件注册。
 
 ## 设计边界
 
@@ -132,7 +132,7 @@ PYTHONPATH="$(pwd)" python3 -m unittest discover -s ./environment_provider/tests
 - 不修改 Hermes 核心代码，也不持久化注入内容到 Memory 或工作区。
 - 不提供 GPS、IP 定位或后台定位。
 - 天气来自第三方服务，准确性和可用性取决于 `wttr.in`。
-- Hermes 不同发行版的插件 API 可能变化；当前实现依赖 `pre_llm_call` 与 `register_hook` 接口。
+- 当前实现依赖支持 `llm_request` 与 `register_middleware` 的 Hermes 发行版；旧版 Hermes 需要升级后使用。
 
 ## 开源许可
 

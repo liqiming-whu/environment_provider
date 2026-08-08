@@ -1,6 +1,6 @@
 # environment_provider 安装与配置
 
-该插件通过 Hermes 的 `pre_llm_call` hook，在每个用户轮次推理前临时注入当前日期时间、时区、星期、手动地点、天气和电池状态。它不修改 `SOUL.md`、Prompt、Skill、Memory 或会话历史；删除插件后不会影响 Agent 的其他功能。
+该插件通过 Hermes 的 `llm_request` 中间件，在请求发送给模型前临时附加当前日期时间、时区、星期、手动地点、天气和电池状态。环境块不写入可见消息或 `api_content` 历史侧车；请求中若含旧版插件遗留的环境块，也会仅在出站副本中清理。它不修改 `SOUL.md`、Prompt、Skill、Memory、工作区或会话数据库；删除插件后不会影响 Agent 的其他功能。
 
 ## 1. 安装依赖
 
@@ -64,7 +64,7 @@ location:
 
 V1 不使用 GPS 或 IP 定位。`query` 与 `display` 分离，因此不需要内置全球城市中英文对照表；没有对应语言的 `display` 时会回退到查询名称。旧版 `city`／`country` 顶层写法仍可读取，但不会自动翻译。
 
-天气请求使用 `wttr.in`，不需要 API Key。中文模式优先读取服务返回的中文天气描述，缺失时按完整的 48 个 WorldWeatherOnline 天气代码使用内置中文兜底，再回退到英文。缓存有效期默认为 30 分钟，缓存格式升级时会自动绕过旧缓存。天气、网络或电池读取失败不会中断 Hermes。
+天气请求使用 `wttr.in`，不需要 API Key。中文模式优先读取服务返回的中文天气描述，缺失时使用覆盖 49 个天气代码的内置中文兜底（扩展天气码 `149` 为“烟霾”），再回退到英文。缓存有效期默认为 30 分钟，缓存格式升级时会自动绕过旧缓存。天气、网络或电池读取失败不会中断 Hermes。
 
 ## 4. 启用并重启
 
@@ -83,7 +83,7 @@ hermes plugins enable environment_provider
 hermes plugins list
 ```
 
-应看到 `environment_provider` 为 enabled。随后询问 Agent 当前日期、星期、天气或电量；注入文本应包含独立的“星期”字段，例如 `星期：星期日`。
+应看到 `environment_provider` 为 enabled。随后询问 Agent 当前日期、星期、天气或电量；模型收到的临时环境块应包含独立的“星期”字段，例如 `星期：星期日`。聊天记录正文中不应出现该环境块。
 
 离线测试：
 
