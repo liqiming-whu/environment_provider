@@ -1,5 +1,7 @@
 # environment_provider
 
+[![Linux.do](https://img.shields.io/badge/Linux.do-Community-00A67D?style=flat-square)](https://linux.do)
+
 `environment_provider` 是一个面向 Hermes Agent 的开源环境信息注入插件。它通过 `llm_request` 中间件，在模型请求即将发送时附加简短、可本地化的现实环境信息，让 Agent 能感知当前时间、星期、手动配置的地点、天气、电量和充电状态。
 
 环境块只存在于当前发往模型的请求副本中，不写入可见消息或 Hermes 的 `api_content` 历史侧车。插件还会在请求副本中移除旧版插件遗留的历史环境块，避免模型同时看到多份过期时间、天气和电量。它不会修改 Agent 的 Prompt、Skill、Memory、工作区或会话数据库。天气、电池或配置读取失败时采用 fail-open 策略，不会阻断 Hermes 对话。
